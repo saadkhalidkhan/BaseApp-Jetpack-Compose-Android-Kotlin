@@ -46,6 +46,8 @@ fun CharactersScreen(
         },
         content = {
             Content(
+                modifier = Modifier
+                    .padding(it),
                 isLoading = viewState.isLoading,
                 pagedData = viewState.pagedData,
                 onTriggerEvent = {
@@ -62,6 +64,7 @@ fun CharactersScreen(
 
 @Composable
 private fun Content(
+    modifier: Modifier = Modifier,
     isLoading: Boolean = false,
     pagedData: Flow<PagingData<CharacterDto>>? = null,
     onTriggerEvent: (CharactersViewEvent) -> Unit,
@@ -73,7 +76,7 @@ private fun Content(
     }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 15.dp),
     ) {
