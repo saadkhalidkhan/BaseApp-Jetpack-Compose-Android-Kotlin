@@ -119,7 +119,7 @@ private fun CharacterInfoContainer(data: Result?) {
         shape = RoundedCornerShape(8.dp),
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
             modifier = Modifier.padding(20.dp)
         ) {
             CharacterInfoRow(
@@ -166,9 +166,9 @@ private fun CharacterInfoContainer(data: Result?) {
 
 @Composable
 private fun CharacterInfoRow(modifier: Modifier, text: String, value: String) {
-    Row(
+    Column(
         modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         RickAndMortyText(
             text = text,
