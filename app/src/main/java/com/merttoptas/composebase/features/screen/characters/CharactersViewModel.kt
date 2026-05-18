@@ -27,16 +27,33 @@ class CharactersViewModel @Inject constructor(
     private val config = PagingConfig(pageSize = 20)
 
     init {
-        getAllCharacters()
+        getAllCharacters(isRefreshing = false)
     }
 
-    private fun getAllCharacters() {
+    private fun getAllCharacters(isRefreshing: Boolean = false) {
         viewModelScope.launch {
-            setState { currentState.copy(isLoading = true) }
-            val params = GetCharactersUseCase.Params(config, hashMapOf())
-            val pagedFlow = getCharactersUseCase(params).cachedIn(scope = viewModelScope)
-            delay(1000)
-            setState { currentState.copy(isLoading = false, pagedData = pagedFlow) }
+            try {
+                if (isRefreshing) {
+                    setState { currentState.copy(isRefreshing = true) }
+                } else {
+                    setState { currentState.copy(isLoading = true) }
+                }
+                val params = GetCharactersUseCase.Params(config, hashMapOf())
+                val pagedFlow = getCharactersUseCase(params).cachedIn(scope = viewModelScope)
+                delay(1000)
+                if (isRefreshing) {
+                    setState { currentState.copy(isRefreshing = false, pagedData = pagedFlow) }
+                } else {
+                    setState { currentState.copy(isLoading = false, pagedData = pagedFlow) }
+                }
+            } catch (e: Exception) {
+                // Handle error: reset loading/refreshing state to false
+                if (isRefreshing) {
+                    setState { currentState.copy(isRefreshing = false) }
+                } else {
+                    setState { currentState.copy(isLoading = false) }
+                }
+            }
         }
     }
 
@@ -51,11 +68,13 @@ class CharactersViewModel @Inject constructor(
         viewModelScope.launch {
             when (event) {
                 is CharactersViewEvent.UpdateFavorite -> updateFavorite(event.dto)
+                is CharactersViewEvent.Refresh -> getAllCharacters(isRefreshing = true)
             }
         }
     }
 }
 
 sealed class CharactersViewEvent : IViewEvent {
+    object Refresh : CharactersViewEvent()
     class UpdateFavorite(val dto: CharacterDto) : CharactersViewEvent()
 }

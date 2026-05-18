@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 @Stable
 data class CharactersViewState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val pagedData: Flow<PagingData<CharacterDto>>? = null,
     val data: List<Result>? = null,
 ) : IViewState

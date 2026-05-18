@@ -3,11 +3,18 @@ package com.merttoptas.composebase.features.screen.characters
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,7 +53,10 @@ fun CharactersScreen(
         },
         content = {
             Content(
+                modifier = Modifier
+                    .padding(it),
                 isLoading = viewState.isLoading,
+                isRefreshing = viewState.isRefreshing,
                 pagedData = viewState.pagedData,
                 onTriggerEvent = {
                     viewModel.onTriggerEvent(it)
@@ -60,9 +70,12 @@ fun CharactersScreen(
     )
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun Content(
+    modifier: Modifier = Modifier,
     isLoading: Boolean = false,
+    isRefreshing: Boolean = false,
     pagedData: Flow<PagingData<CharacterDto>>? = null,
     onTriggerEvent: (CharactersViewEvent) -> Unit,
     clickDetail: (CharacterDto?) -> Unit
@@ -72,12 +85,20 @@ private fun Content(
         pagingItems = rememberFlowWithLifecycle(it).collectAsLazyPagingItems()
     }
 
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = { onTriggerEvent(CharactersViewEvent.Refresh) }
+    )
+
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 15.dp),
+            .pullRefresh(pullRefreshState)
+            .padding(horizontal = 15.dp)
+            .semantics { testTag = "characters_pull_refresh_container" },
     ) {
         LazyColumn(
+            modifier = Modifier.semantics { testTag = "characters_lazy_column" },
             contentPadding = PaddingValues(vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -107,9 +128,17 @@ private fun Content(
 
                     }
                 }
-
             }
         }
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .semantics { testTag = "pull_refresh_indicator" },
+            backgroundColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        )
     }
 }
 
